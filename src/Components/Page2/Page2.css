@@ -1,6 +1,10 @@
+body{
+    font-family: 'Poppins', sans-serif;
+}
+
 .headerbg{
     position: relative;
-    background-image: linear-gradient(to right, #2985c2, #08263b);
+    background-image: linear-gradient(to right, #0D76A8, #073B54);
 }
 
 .containerbg1{
@@ -16,11 +20,22 @@
     background-image: linear-gradient(#1ea6d4, #0a1d70);
     z-index: -1;
 }
+
+.hintblock{
+    height:100%;
+    min-height: 250px;
+}
 .profilepic{
     position: absolute;
     height: 60px;
     width: 60px;
     top: -2px;
     right: 0;
+}
+
+.options{
+    cursor: pointer;
+    width:100%;
+    margin-bottom: 10px;
 }
 
