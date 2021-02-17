@@ -4,38 +4,32 @@ import React,{useState, useEffect} from 'react';
 import '../../../node_modules/bootstrap/dist/css/bootstrap.css';
 import './Page2.css';
 import axios from 'axios';
+import { connect } from "react-redux";
+import setquestions from "../redux/questions/questionsAction";
+import setlearnAndMore from '../redux/learnAndMore/learnAndMoreAction';
 
-const Page2 = () => {
 
-const [learnAndMore, setlearnAndMore] = useState({ questionBlock : "col-md-12 p-3",
-                                                    hintBlock: "col-md-4 d-none hintblock",
-                                                    isOpened:false,
-                                                    });
-const [questions,setquestions]= useState({
-    "subject" : "",
-    "concept" : "",
-    "totalQuestions" : 0,
-    "questionList" : [
-      {
-        "questionContent" : "",
-        "imageList" : [""],
-        "options" : [""],
-        "correctAnswer" : "",
-        "explanation" : ""
-      }
-      ]
-    
+const Page2 = ({questions,learnAndMore,setquestions,setlearnAndMore}) => {
+
+  const [QA,setQA]= useState({
+        attempted:0,
+        unattemted:0,
+        Correct:0,
+        Incorrect:0,
   });
+
+  const [CA,setCA]= useState([{
+      pageNumber: 0,
+      AttemptedStatus: false,
+  }])
   const [page,setpage] = useState(1);
   const [selectedAnswer,setselectedAnswer] = useState("");
   const [correctAnswer,setcorrectAnswer] = useState("");
-  const [time,settime] =useState("");
 
 const learnAndMoreHandler=()=>{
 
 setlearnAndMore({
-    questionBlock: "col-md-7 p-2 pr-0",
-    hintBlock:"col-md-4 ml-4 pr-0 hintblock",
+    hintBlock:"col-lg-6 p-3 mt-3 hintblock",
     isOpened: true,
 });
 }
@@ -43,27 +37,13 @@ setlearnAndMore({
 useEffect(()=>{
     axios.get("https://run.mocky.io/v3/077623ec-b480-42df-a8d2-579c24ae85a5")
     .then(response=>setquestions(response.data))
-    console.log(questions.questionList)
+    console.log(questions)
 },[]);
 
- 
-const timerHandler=()=>{
-    var timer = 15*60;
-    setInterval(function () {
-        var minutes = parseInt(timer / 60, 10);
-        var seconds = parseInt(timer % 60, 10);
+useEffect(()=>{
+    setQA({...QA, unattemted : questions.totalQuestions})
+},[questions]);
 
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-         settime(minutes + ":" + seconds);
-
-        if (--timer < 0) {
-            timer = 15*60;
-        }
-    }, 1000);
-}
- 
-window.onload = timerHandler
  
 const pageHandler=(event, value)=>{
     setpage(value);
@@ -86,42 +66,37 @@ const AnswerSelectHandler=(event)=>{
 
 const checkAnswerHandler=()=>{
     questions.questionList[page-1].correctAnswer==selectedAnswer ? setcorrectAnswer("true") : setcorrectAnswer("false")
+    questions.questionList[page-1].correctAnswer==selectedAnswer ? setQA({...QA,attempted : QA.attempted+1, unattemted: QA.unattemted-1, Correct : QA.Correct+1}) : setQA({...QA,attempted : QA.attempted+1, unattemted: QA.unattemted-1, Incorrect: QA.Incorrect+1})
+    CA.push({pageNumber: page, AttemptedStatus : true});
+    console.log(CA);
 }
 
     return (
         <div className="container-fluid" >
             <div  className="containerbg1"/>
-            <div className="row headerbg p-4 text-white" style={{position:'sticky', top:0, zIndex: 10}} >
-                <div className="col-sm-10">
-                    Class bridge
-                </div>
-                <div className="col-sm-2">
-                    {time} min left
-                </div>
-            </div>
             <div className="card shadow p-2 m-4 bg-white rounded-lg" style={{minHeight: '530px'}}>
                 <div className="row m-2">
-                    <div className="col-sm-2">
+                    <div className="col-lg-2">
                         <h5>{questions.subject}</h5>
                         <span>Data Handling</span>
                     </div>
-                    <div className="col-sm-2 text-center p-0" style={{maxWidth:'200px'}}>
+                    <div className="col-lg-2 text-center p-0" style={{maxWidth:'200px'}}>
                         Attempted
-                        <h5 className="text-primary">{page}</h5>
+                        <h5 style={{color:'#0D76A8'}}>{QA.attempted}</h5>
                     </div>
-                    <div className="col-sm-2 text-center p-0" style={{maxWidth:'200px'}}>
+                    <div className="col-lg-2 text-center p-0" style={{maxWidth:'200px'}}>
                         unattempted
-                        <h5 className="text-primary">{questions.totalQuestions-page}</h5>
+                        <h5 style={{color:'#0D76A8'}}>{QA.unattemted}</h5>
                     </div>
-                    <div className="col-sm-2 text-center p-0" style={{maxWidth:'200px'}}>
+                    <div className="col-lg-2 text-center p-0" style={{maxWidth:'200px'}}>
                         Correct
-                        <h5 className="text-primary">24</h5>
+                        <h5 style={{color:'#0D76A8'}}>{QA.Correct}</h5>
                     </div>
-                    <div className="col-sm-2 text-center p-0" style={{maxWidth:'200px'}}>
+                    <div className="col-lg-2 text-center p-0" style={{maxWidth:'200px'}}>
                         Wrong
-                        <h5 className="text-primary">6</h5>
+                        <h5 style={{color:'#0D76A8'}}>{QA.Incorrect}</h5>
                     </div>
-                    <div className="col-sm-2 text-left" style={{display:'flex', justifyContent:'flex-end'}}>
+                    <div className="col-lg-2 text-left" style={{display:'flex', justifyContent:'flex-end', position:'relative'}}>
                         <div  style={{display:'flex', flexDirection:'column',paddingRight:10}}>
                             <span className="font-weight-bold">Logesh</span>
                             <p>Level 10</p>
@@ -146,8 +121,8 @@ const checkAnswerHandler=()=>{
                 />
                 </div>
                 </div>
-                <div className="row m-3">
-                    <div className={learnAndMore.questionBlock} style={{border:'2px solid rgba(0,0,0,0.3)', borderRadius: '3%'}}>
+                <div className="row mx-3">
+                    <div className='col-lg-6 p-3 mt-3' style={{border:'1.5px solid rgba(0,0,0,0.7)', borderRadius: '1.5%'}}>
                         <div className="row pb-2">
                             <div className="col-sm-6 font-weight-bold text-left">
                                 Question {page}
@@ -175,13 +150,16 @@ const checkAnswerHandler=()=>{
                                 questions.questionList[page-1].options.map((option,index)=>(
                                     <Card className="options" style={ selectedAnswer==option ? ( 
                                                                                 correctAnswer!="" ? (
-                                                                                    correctAnswer=="true" ? {backgroundColor:'#5cff7f'} : {backgroundColor:'#ff6f5c'}
+                                                                                    correctAnswer=="true" ? {backgroundColor:'#5cff7f'} : ( {backgroundColor:'#ff6f5c'} )
                                                                                 ) :{backgroundColor:'rgba(0,0,0,0.08)'}
                                                                                 ) : null
                                                                        
                                                                     }
                                      >
-                                    <div className="col-sm-12 p-3 " onClick={()=>AnswerSelectHandler(option)}>
+                                    <div className="col-sm-12 p-3 " style={CA.find(x=>x.pageNumber==page) != undefined ? {pointerEvents:'none', backgroundColor:'inherit'} :
+                                                                                                                {backgroundColor:'inherit'}
+
+                                    } onClick={()=>AnswerSelectHandler(option)}>
                                         <span className="font-weight-bold pr-3">{
                                             index ==0 ? "A." : (index==1 ? "B." :(index==2 ? "C." : "D."))
                                         }</span>
@@ -190,8 +168,16 @@ const checkAnswerHandler=()=>{
                                 </Card>
                                 ))
                             }
+                    <   div className="row mt-3">
+                            <div className="col-sm-6 ">
+                                <Button  className="font-weight-bold" disabled={ page==1 ? true : false }  onClick={prevHandler}>&lt; Prev</Button>
+                            </div>
+                            <div className="col-sm-6 text-right ">
+                                <Button   className="font-weight-bold" disabled={ page == questions.totalQuestions ? true : false }  onClick={nextHandler}>Next &gt;</Button>
+                            </div>
+                        </div>
                     </div>
-                    <div className={learnAndMore.hintBlock} style={{border:'2px solid rgba(0,0,0,0.3)', borderRadius: '3%'}}>
+                    <div className={learnAndMore.hintBlock} style={{border:'1.5px solid rgba(0,0,0,0.7)', borderRadius: '1.5%', position: 'relative', left:'10px'}}>
                         <div className="row py-2">
                             <div className="col-sm-11  font-weight-bold">
                                 Conceptual learning
@@ -213,19 +199,10 @@ const checkAnswerHandler=()=>{
                         </div>
                     </div>
                 </div>
-                <div className="row ml-3">
-                    <div className="col-sm-6">
-                        <div className="row">
-                            <div className="col-sm-6">
-                                <Button   disabled={ page==1 ? true : false }  onClick={prevHandler}>&lt; Prev</Button>
-                            </div>
-                            <div className="col-sm-6 text-right">
-                                <Button    disabled={ page == questions.totalQuestions ? true : false }  onClick={nextHandler}>Next &gt;</Button>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col-sm-6 mr-0 text-right" style={{right:'1.8%'}}>
-                        <Button variant="contained" onClick={checkAnswerHandler} color="Secondary" style={{marginRight:20}}>Check Answer</Button>
+                <div className="row ml-3" style={{position:'relative', bottom:'50px', left:'650px'}}>
+                    <div className="col-sm-6 mr-0" style={{right:'1.8%'}}>
+                        <Button  disabled = {CA.find(x=>x.pageNumber==page) != undefined ?  true : false}
+                         variant="contained" onClick={checkAnswerHandler} color="Secondary" style={{marginRight:20}}>Check Answer</Button>
                         <Button variant="contained" color="primary">Submit</Button>
                     </div>
                 </div>
@@ -235,4 +212,14 @@ const checkAnswerHandler=()=>{
     )
 }
 
-export default Page2
+const mapDispatchToProps=dispatch=>({
+    setquestions : user=>(dispatch(setquestions(user))),
+    setlearnAndMore : hint =>(dispatch(setlearnAndMore(hint))),    
+  })
+  
+  const mapStateToProps= state=>({
+    questions : state.question,
+    learnAndMore : state.hint,
+  })
+  
+export default connect(mapStateToProps,mapDispatchToProps)(Page2);
