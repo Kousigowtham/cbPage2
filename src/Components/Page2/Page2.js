@@ -8,7 +8,7 @@ import axios from 'axios';
 const Page2 = () => {
 
 const [learnAndMore, setlearnAndMore] = useState({ questionBlock : "col-md-12 p-3",
-                                                    hintBlock: "col-md-4 d-none",
+                                                    hintBlock: "col-md-4 d-none hintblock",
                                                     isOpened:false,
                                                     });
 const [questions,setquestions]= useState({
@@ -27,22 +27,44 @@ const [questions,setquestions]= useState({
     
   });
   const [page,setpage] = useState(1);
+  const [selectedAnswer,setselectedAnswer] = useState("");
   const [correctAnswer,setcorrectAnswer] = useState("");
+  const [time,settime] =useState("");
 
 const learnAndMoreHandler=()=>{
 
 setlearnAndMore({
     questionBlock: "col-md-7 p-2 pr-0",
-    hintBlock:"col-md-5 pr-0",
+    hintBlock:"col-md-4 ml-4 pr-0 hintblock",
     isOpened: true,
 });
 }
 
 useEffect(()=>{
-    axios.get("https://run.mocky.io/v3/eca37686-d0b7-4129-9d5d-dded7aeccff7")
+    axios.get("https://run.mocky.io/v3/077623ec-b480-42df-a8d2-579c24ae85a5")
     .then(response=>setquestions(response.data))
+    console.log(questions.questionList)
 },[]);
 
+ 
+const timerHandler=()=>{
+    var timer = 15*60;
+    setInterval(function () {
+        var minutes = parseInt(timer / 60, 10);
+        var seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+         settime(minutes + ":" + seconds);
+
+        if (--timer < 0) {
+            timer = 15*60;
+        }
+    }, 1000);
+}
+ 
+window.onload = timerHandler
+ 
 const pageHandler=(event, value)=>{
     setpage(value);
     setcorrectAnswer("");
@@ -57,9 +79,13 @@ const nextHandler=()=>{
     setpage(page+1);
     setcorrectAnswer("");
 }
+const AnswerSelectHandler=(event)=>{
+        setselectedAnswer(event);
+        setcorrectAnswer("");
+}
 
-const checkAnswerHandler=(value)=>{
-    value == questions.questionList[page-1].correctAnswer ? setcorrectAnswer("true") : setcorrectAnswer("false")
+const checkAnswerHandler=()=>{
+    questions.questionList[page-1].correctAnswer==selectedAnswer ? setcorrectAnswer("true") : setcorrectAnswer("false")
 }
 
     return (
@@ -70,7 +96,7 @@ const checkAnswerHandler=(value)=>{
                     Class bridge
                 </div>
                 <div className="col-sm-2">
-                    6:00 min left
+                    {time} min left
                 </div>
             </div>
             <div className="card shadow p-2 m-4 bg-white rounded-lg" style={{minHeight: '530px'}}>
@@ -81,11 +107,11 @@ const checkAnswerHandler=(value)=>{
                     </div>
                     <div className="col-sm-2 text-center p-0" style={{maxWidth:'200px'}}>
                         Attempted
-                        <h5 className="text-primary">30</h5>
+                        <h5 className="text-primary">{page}</h5>
                     </div>
                     <div className="col-sm-2 text-center p-0" style={{maxWidth:'200px'}}>
                         unattempted
-                        <h5 className="text-primary">10</h5>
+                        <h5 className="text-primary">{questions.totalQuestions-page}</h5>
                     </div>
                     <div className="col-sm-2 text-center p-0" style={{maxWidth:'200px'}}>
                         Correct
@@ -114,14 +140,14 @@ const checkAnswerHandler=(value)=>{
                 hidePrevButton
                 page={page}
                 onChange={pageHandler}
-                boundaryCount={(questions.totalQuestions/2)}
+                boundaryCount={(5)}
                 size='large'
                 color="primary"
                 />
                 </div>
                 </div>
                 <div className="row m-3">
-                    <div className={learnAndMore.questionBlock} style={{border:'1px solid rgba(0,0,0,0.3)', borderRadius: '1%'}}>
+                    <div className={learnAndMore.questionBlock} style={{border:'2px solid rgba(0,0,0,0.3)', borderRadius: '3%'}}>
                         <div className="row pb-2">
                             <div className="col-sm-6 font-weight-bold text-left">
                                 Question {page}
@@ -145,43 +171,42 @@ const checkAnswerHandler=(value)=>{
                         ))) : null    
                     }
                             </div>
-                            <Card  style={{width:'100%', marginBottom:10}}>
-                                <div className="col-sm-12 p-3">
-                                    <span className="font-weight-bold pr-3">A.</span>
-                                    <span>{questions.questionList[page-1].options[0]}</span>
-                                </div>
-                            </Card>
-                            <Card  style={ {width:'100%', marginBottom:10}}>
-                                <div className="col-sm-12 p-3">
-                                    <span className="font-weight-bold pr-3">B.</span>
-                                    <span>{questions.questionList[page-1].options[1]}</span>
-                                </div>
-                            </Card>
-                            <Card  style={{width:'100%', marginBottom:10}}>
-                                <div className="col-sm-12 p-3">
-                                    <span className="font-weight-bold pr-3">C.</span>
-                                    <span>{questions.questionList[page-1].options[2]}</span>
-                                </div>
-                            </Card>
-                            <Card  style={{width:'100%', marginBottom:10}}>
-                                <div className="col-sm-12 p-3">
-                                    <span className="font-weight-bold pr-3">D.</span>
-                                    <span>{questions.questionList[page-1].options[3]}</span>
-                                </div>
-                            </Card>
+                            {
+                                questions.questionList[page-1].options.map((option,index)=>(
+                                    <Card className="options" style={ selectedAnswer==option ? ( 
+                                                                                correctAnswer!="" ? (
+                                                                                    correctAnswer=="true" ? {backgroundColor:'#5cff7f'} : {backgroundColor:'#ff6f5c'}
+                                                                                ) :{backgroundColor:'rgba(0,0,0,0.08)'}
+                                                                                ) : null
+                                                                       
+                                                                    }
+                                     >
+                                    <div className="col-sm-12 p-3 " onClick={()=>AnswerSelectHandler(option)}>
+                                        <span className="font-weight-bold pr-3">{
+                                            index ==0 ? "A." : (index==1 ? "B." :(index==2 ? "C." : "D."))
+                                        }</span>
+                                        <span>{option}</span>
+                                    </div>
+                                </Card>
+                                ))
+                            }
                     </div>
-                    <div className={learnAndMore.hintBlock} style={{border:'1px solid rgba(0,0,0,0.3)', borderRadius: '1%'}}>
-                        <div className="row">
-                            <div className="col-sm-12 mb-5">
-                                <h4>Conceptual learning</h4>
+                    <div className={learnAndMore.hintBlock} style={{border:'2px solid rgba(0,0,0,0.3)', borderRadius: '3%'}}>
+                        <div className="row py-2">
+                            <div className="col-sm-11  font-weight-bold">
+                                Conceptual learning
+                            </div>
+                            <div  onClick={()=>setlearnAndMore({questionBlock : "col-md-12 p-3", hintBlock:"col-md-4 d-none hintblock", isOpened : false})} className="col-sm-1  font-weight-bold text-left"
+                            style={{cursor:'pointer', position:'absolute', right: 0}} >
+                                X
                             </div>
                         </div>
-                        <div className="row">
-                            <div className="col-sm-12 mb-5">
+                        <div className="row pb-2">
+                            <div className="col-sm-12 font-weight-bold">
                                 Question {page}
                             </div>
                         </div>
-                        <div className="row">
+                        <div className="row pb-3">
                             <div className="col-sm-12">
                                 {questions.questionList[page-1].explanation}
                             </div>
@@ -200,7 +225,7 @@ const checkAnswerHandler=(value)=>{
                         </div>
                     </div>
                     <div className="col-sm-6 mr-0 text-right" style={{right:'1.8%'}}>
-                        <Button variant="contained" color="Secondary" style={{marginRight:20}}>Check Answer</Button>
+                        <Button variant="contained" onClick={checkAnswerHandler} color="Secondary" style={{marginRight:20}}>Check Answer</Button>
                         <Button variant="contained" color="primary">Submit</Button>
                     </div>
                 </div>
